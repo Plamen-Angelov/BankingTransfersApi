@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BankingTransfers.API/BankingTransfers.API.csproj" />
+    <Project Path="src/BankingTransfers.Application/BankingTransfers.Application.csproj" />
+    <Project Path="src/BankingTransfers.Domain/BankingTransfers.Domain.csproj" />
+    <Project Path="src/BankingTransfers.Infrastructure/BankingTransfers.Infrastructure.csproj" />
+  </Folder>
+</Solution>
