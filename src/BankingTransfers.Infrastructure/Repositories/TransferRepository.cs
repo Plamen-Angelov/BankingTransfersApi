@@ -35,7 +35,7 @@ public class TransferRepository : ITransferRepository
 
         await using var command = connection.CreateCommand();
         command.CommandText = """
-            UPDATE TOP (2) TransferRequests
+            UPDATE TransferRequests
             SET Status = 'Processing', ProcessingStartedAt = GETUTCDATE()
             OUTPUT INSERTED.UId
             WHERE Status = 'Pending' AND CAST(ExecutionDate AS DATE) <= CAST(GETUTCDATE() AS DATE)

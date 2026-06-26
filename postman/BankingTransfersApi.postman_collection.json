@@ -1,0 +1,243 @@
+{
+  "info": {
+    "name": "Banking Transfers API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://localhost:7000",
+      "description": "Update port to match the one shown when the application starts."
+    },
+    {
+      "key": "johnUID",
+      "value": "8d5fa53a-fe3b-4f74-b5c4-7b43dc4e2187",
+      "description": "Seeded user: john.doe"
+    },
+    {
+      "key": "janeUID",
+      "value": "78f90a74-c792-45ca-a6b1-4dac75f4604d",
+      "description": "Seeded user: jane.smith"
+    },
+    {
+      "key": "transferId",
+      "value": "",
+      "description": "Populated automatically after Create Transfer runs."
+    }
+  ],
+  "item": [
+    {
+      "name": "Validate Transfer",
+      "item": [
+        {
+          "name": "Valid transfer",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/transfers/validate",
+            "header": [
+              { "key": "UserProfileUID", "value": "{{johnUID}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceIban\": \"BG12TEST1234567890\",\n  \"targetIban\": \"BG34TEST9876543210\",\n  \"amount\": 250.50,\n  \"currency\": \"EUR\",\n  \"reason\": \"Invoice payment\",\n  \"executionDate\": \"2027-01-01\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Invalid — same source and target IBAN",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/transfers/validate",
+            "header": [
+              { "key": "UserProfileUID", "value": "{{johnUID}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceIban\": \"BG12TEST1234567890\",\n  \"targetIban\": \"BG12TEST1234567890\",\n  \"amount\": 250.50,\n  \"currency\": \"EUR\",\n  \"reason\": \"Invoice payment\",\n  \"executionDate\": \"2027-01-01\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Invalid — no transfer permission on source IBAN",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/transfers/validate",
+            "header": [
+              { "key": "UserProfileUID", "value": "{{johnUID}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceIban\": \"BG99TEST0000000001\",\n  \"targetIban\": \"BG34TEST9876543210\",\n  \"amount\": 250.50,\n  \"currency\": \"EUR\",\n  \"reason\": \"Invoice payment\",\n  \"executionDate\": \"2027-01-01\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Invalid — unsupported currency",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/transfers/validate",
+            "header": [
+              { "key": "UserProfileUID", "value": "{{johnUID}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceIban\": \"BG12TEST1234567890\",\n  \"targetIban\": \"BG34TEST9876543210\",\n  \"amount\": 250.50,\n  \"currency\": \"GBP\",\n  \"reason\": \"Invoice payment\",\n  \"executionDate\": \"2027-01-01\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Invalid — user profile not found",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/transfers/validate",
+            "header": [
+              { "key": "UserProfileUID", "value": "00000000-0000-0000-0000-000000000000" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceIban\": \"BG12TEST1234567890\",\n  \"targetIban\": \"BG34TEST9876543210\",\n  \"amount\": 250.50,\n  \"currency\": \"EUR\",\n  \"reason\": \"Invoice payment\",\n  \"executionDate\": \"2027-01-01\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Transfer",
+      "item": [
+        {
+          "name": "Create — amount below 10,000 (instant success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.id) { pm.collectionVariables.set('transferId', json.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/transfers",
+            "header": [
+              { "key": "UserProfileUID", "value": "{{johnUID}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceIban\": \"BG12TEST1234567890\",\n  \"targetIban\": \"BG34TEST9876543210\",\n  \"amount\": 500.00,\n  \"currency\": \"EUR\",\n  \"reason\": \"Invoice payment\",\n  \"executionDate\": \"2027-01-01\",\n  \"idempotencyKey\": \"key-below-10k-001\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create — amount 10,000–20,000 (retry range)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.id) { pm.collectionVariables.set('transferId', json.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/transfers",
+            "header": [
+              { "key": "UserProfileUID", "value": "{{johnUID}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceIban\": \"BG12TEST1234567890\",\n  \"targetIban\": \"BG34TEST9876543210\",\n  \"amount\": 15000.00,\n  \"currency\": \"EUR\",\n  \"reason\": \"Large invoice\",\n  \"executionDate\": \"2027-01-01\",\n  \"idempotencyKey\": \"key-retry-range-001\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create — amount above 20,000 (instant fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.id) { pm.collectionVariables.set('transferId', json.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/transfers",
+            "header": [
+              { "key": "UserProfileUID", "value": "{{johnUID}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceIban\": \"BG12TEST1234567890\",\n  \"targetIban\": \"BG34TEST9876543210\",\n  \"amount\": 25000.00,\n  \"currency\": \"EUR\",\n  \"reason\": \"Equipment purchase\",\n  \"executionDate\": \"2027-01-01\",\n  \"idempotencyKey\": \"key-above-20k-001\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create — duplicate idempotency key (returns existing)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/transfers",
+            "header": [
+              { "key": "UserProfileUID", "value": "{{johnUID}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceIban\": \"BG12TEST1234567890\",\n  \"targetIban\": \"BG34TEST9876543210\",\n  \"amount\": 500.00,\n  \"currency\": \"EUR\",\n  \"reason\": \"Invoice payment\",\n  \"executionDate\": \"2027-01-01\",\n  \"idempotencyKey\": \"key-below-10k-001\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Transfer",
+      "item": [
+        {
+          "name": "Get by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/transfers/{{transferId}}",
+            "header": [
+              { "key": "UserProfileUID", "value": "{{johnUID}}" }
+            ]
+          }
+        },
+        {
+          "name": "Get by ID — transfer not found",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/transfers/00000000-0000-0000-0000-000000000000",
+            "header": [
+              { "key": "UserProfileUID", "value": "{{johnUID}}" }
+            ]
+          }
+        },
+        {
+          "name": "Get by ID — wrong user (no info leak)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/transfers/{{transferId}}",
+            "header": [
+              { "key": "UserProfileUID", "value": "{{janeUID}}" }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

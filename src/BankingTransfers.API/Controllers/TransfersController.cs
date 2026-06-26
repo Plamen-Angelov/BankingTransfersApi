@@ -83,18 +83,18 @@ public class TransfersController : ControllerBase
         };
     }
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("{transferUId:guid}")]
     [ProducesResponseType(typeof(GetTransferResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationResponseDto), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(
         [FromHeader(Name = "UserProfileUID"), Required] Guid userProfileUId,
-        Guid id,
+        Guid transferUId,
         CancellationToken cancellationToken)
     {
         var request = new GetTransferRequest
         {
             UserProfileUId = userProfileUId,
-            TransferUId = id
+            TransferUId = transferUId
         };
 
         var result = await _mediator.Send(request, cancellationToken);
