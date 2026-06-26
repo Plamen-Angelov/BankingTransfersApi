@@ -20,9 +20,10 @@ public class UserProfileRepository : IUserProfileRepository
             .FirstOrDefaultAsync(x => x.UId == uid, cancellationToken);
     }
 
-    public async Task<UserProfileAccountPermissions?> GetAccountPermissionAsync(Guid userUId, string iban, CancellationToken cancellationToken)
+    public async Task<UserProfile?> GetByUIdWithPermissionAsync(Guid uid, CancellationToken cancellationToken)
     {
-        return await _context.UserProfileAccountPermissions
-            .FirstOrDefaultAsync(x => x.UserProfile.UId == userUId && x.IBAN == iban, cancellationToken);
+        return await _context.UserProfiles
+            .Include(u => u.AccountPermissions)
+            .FirstOrDefaultAsync(u => u.UId == uid, cancellationToken);
     }
 }

@@ -5,5 +5,5 @@ namespace BankingTransfers.Application.Interfaces;
 public interface IUserProfileRepository
 {
     Task<UserProfile?> GetByUIdAsync(Guid uid, CancellationToken cancellationToken);
-    Task<UserProfileAccountPermissions?> GetAccountPermissionAsync(Guid userUId, string iban, CancellationToken cancellationToken);
+    Task<UserProfile?> GetByUIdWithPermissionAsync(Guid uid, CancellationToken cancellationToken);
 }

@@ -29,9 +29,12 @@ public class CreateTransferHandler : IRequestHandler<CreateTransferRequest, Crea
 
     public async Task<CreateTransferResponse> Handle(CreateTransferRequest request, CancellationToken cancellationToken)
     {
-        var userProfile = await _userProfileRepository.GetByUIdAsync(request.UserProfileUId, cancellationToken);
-        if (userProfile == null)
-            return new CreateTransferResponse(ResultStatus.NotFound, Errors: ["User profile not found."]);
+        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+            return new CreateTransferResponse(ResultStatus.ValidationFailure, Errors: errors);
+        }
 
         var existing = await _transferRepository.GetByIdempotencyKeyAsync(request.IdempotencyKey, cancellationToken);
         if (existing != null)
@@ -40,16 +43,13 @@ public class CreateTransferHandler : IRequestHandler<CreateTransferRequest, Crea
             return new CreateTransferResponse(ResultStatus.Success, existing.UId, existing.Status.ToString());
         }
 
-        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
-        if (!validationResult.IsValid)
-        {
-            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
-            return new CreateTransferResponse(ResultStatus.ValidationFailure, Errors: errors);
-        }
+        var userProfile = await _userProfileRepository.GetByUIdWithPermissionAsync(
+            request.UserProfileUId, cancellationToken);
 
-        var permission = await _userProfileRepository.GetAccountPermissionAsync(
-            request.UserProfileUId, request.SourceIban, cancellationToken);
+        if (userProfile == null)
+            return new CreateTransferResponse(ResultStatus.NotFound, Errors: ["User profile not found."]);
 
+        var permission = userProfile.AccountPermissions.FirstOrDefault(p => p.IBAN == request.SourceIban);
         if (permission == null || !permission.CreateTransferPermission)
             return new CreateTransferResponse(ResultStatus.ValidationFailure, Errors: ["Source IBAN is not associated with your profile or you don't have transfer permission."]);
 

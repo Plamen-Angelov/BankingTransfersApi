@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BankingTransfers.API.Controllers;
 
 [ApiController]
-[Route("api/transfers")]
+[Route("api/[controller]")]
 public class TransfersController : ControllerBase
 {
     private readonly IMediator _mediator;

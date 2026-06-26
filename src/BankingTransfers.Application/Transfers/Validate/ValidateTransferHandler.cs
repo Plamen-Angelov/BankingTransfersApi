@@ -18,10 +18,6 @@ public class ValidateTransferHandler : IRequestHandler<ValidateTransferRequest, 
 
     public async Task<ValidateTransferResponse> Handle(ValidateTransferRequest request, CancellationToken cancellationToken)
     {
-        var userProfile = await _userProfileRepository.GetByUIdAsync(request.UserProfileUId, cancellationToken);
-        if (userProfile == null)
-            return new ValidateTransferResponse(ResultStatus.NotFound, ["User profile not found."]);
-
         var validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
@@ -29,9 +25,13 @@ public class ValidateTransferHandler : IRequestHandler<ValidateTransferRequest, 
             return new ValidateTransferResponse(ResultStatus.ValidationFailure, errors);
         }
 
-        var permission = await _userProfileRepository.GetAccountPermissionAsync(
-            request.UserProfileUId, request.SourceIban, cancellationToken);
+        var userProfile = await _userProfileRepository.GetByUIdWithPermissionAsync(
+            request.UserProfileUId, cancellationToken);
 
+        if (userProfile == null)
+            return new ValidateTransferResponse(ResultStatus.NotFound, ["User profile not found."]);
+
+        var permission = userProfile.AccountPermissions.FirstOrDefault(p => p.IBAN == request.SourceIban);
         if (permission == null || !permission.CreateTransferPermission)
             return new ValidateTransferResponse(ResultStatus.ValidationFailure, ["Source IBAN is not associated with your profile or you don't have transfer permission."]);
 
