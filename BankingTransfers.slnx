@@ -5,4 +5,7 @@
     <Project Path="src/BankingTransfers.Domain/BankingTransfers.Domain.csproj" />
     <Project Path="src/BankingTransfers.Infrastructure/BankingTransfers.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BankingTransfers.Tests/BankingTransfers.Tests.csproj" />
+  </Folder>
 </Solution>
