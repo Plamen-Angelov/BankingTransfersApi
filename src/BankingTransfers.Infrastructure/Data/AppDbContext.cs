@@ -1,7 +1,7 @@
 using BankingTransfers.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace BankingTransfers.Infrastructure.Persistence;
+namespace BankingTransfers.Infrastructure.Data;
 
 public class AppDbContext : DbContext
 {

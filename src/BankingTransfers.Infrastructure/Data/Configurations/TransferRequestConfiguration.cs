@@ -2,7 +2,7 @@ using BankingTransfers.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace BankingTransfers.Infrastructure.Persistence.Configurations;
+namespace BankingTransfers.Infrastructure.Data.Configurations;
 
 public class TransferRequestConfiguration : IEntityTypeConfiguration<TransferRequest>
 {

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BankingTransfers.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260624081943_InitialDatabaseCreation")]
-    partial class InitialDatabaseCreation
+    [Migration("20260625122058_AddReasonToTransferRequest")]
+    partial class AddReasonToTransferRequest
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -65,6 +65,10 @@ namespace BankingTransfers.Infrastructure.Migrations
 
                     b.Property<DateTime?>("ProcessingStartedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("RetryCount")
                         .ValueGeneratedOnAdd()
